@@ -520,6 +520,40 @@ require('lazy').setup({
     },
   },
 
+  -- git addons
+  {
+    'tpope/vim-fugitive',
+    cmd = { 'Git', 'Gedit', 'Gdiffsplit', 'Gvdiffsplit' },
+  },
+  {
+    'rbong/vim-flog',
+    dependencies = { 'tpope/vim-fugitive' },
+    cmd = { 'Flog', 'Flogsplit' },
+  },
+
+  {
+    'https://git.sr.ht/~swaits/scratch.nvim',
+    lazy = true,
+    keys = {
+      { '<leader>X', '<cmd>Scratch<cr>', desc = 'Scratch Buffer', mode = 'n' },
+      { '<leader>x', '<cmd>ScratchSplit<cr>', desc = 'Scratch Buffer (split)', mode = 'n' },
+    },
+    cmd = {
+      'Scratch',
+      'ScratchSplit',
+    },
+    opts = {},
+  },
+  {
+    'LintaoAmons/scratch.nvim',
+    event = 'VeryLazy',
+    config = function()
+      require('scratch').setup {}
+
+      --vim.keymap.set('n', '<leader>x', ':Scratch', { desc = 'Open scratch' })
+    end,
+  },
+
   -- LSP Plugins
   {
     -- `lazydev` configures Lua LSP for your Neovim config, runtime and plugins
