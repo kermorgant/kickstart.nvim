@@ -1109,6 +1109,8 @@ require('lazy').setup({
   },
 })
 
+require 'custom.delete_pair'
+
 vim.keymap.set('n', '<leader>bb', require('telescope.builtin').buffers, { desc = 'List buffers' })
 
 -- Project management keybindings (Projectile-like)
@@ -1134,6 +1136,20 @@ vim.keymap.set('n', '<leader>ff', function()
     grouped = true,
   }
 end, { desc = 'File browser at current dir' })
+
+vim.keymap.set('n', 'C', function()
+  require('custom.delete_pair').change_to_closing_pair()
+end, { desc = 'Change to closing pair' })
+
+vim.keymap.set('n', 'D', function()
+  require('custom.delete_pair').delete_to_closing_pair()
+end, { desc = 'Delete to closing pair using Treesitter' })
+
+--vim.keymap.set('n', '<leader>ff', function()
+-- require('telescope.builtin').find_files { cwd = vim.fn.expand '%:p:h' }
+--end, { desc = 'Find file in current dir' })
+
+--pcall(require, 'custom')
 
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
