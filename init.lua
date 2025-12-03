@@ -1111,18 +1111,29 @@ require('lazy').setup({
 
 require 'custom.delete_pair'
 
+local function project_root()
+  local ok, project = pcall(require, 'project_nvim.project')
+  if ok and project.get_project_root then
+    local root = project.get_project_root()
+    if root and #root > 0 then
+      return root
+    end
+  end
+  return vim.loop.cwd()
+end
+
 vim.keymap.set('n', '<leader>bb', require('telescope.builtin').buffers, { desc = 'List buffers' })
 
 -- Project management keybindings (Projectile-like)
 vim.keymap.set('n', '<leader>pp', '<cmd>Telescope projects<cr>', { desc = '[P]roject switch' })
 vim.keymap.set('n', '<leader>pf', function()
-  require('telescope.builtin').find_files { cwd = require('project_nvim').get_project_root() }
+  require('telescope.builtin').find_files { cwd = project_root() }
 end, { desc = '[P]roject [F]iles' })
 vim.keymap.set('n', '<leader>pg', function()
-  require('telescope.builtin').live_grep { cwd = require('project_nvim').get_project_root() }
+  require('telescope.builtin').live_grep { cwd = project_root() }
 end, { desc = '[P]roject [G]rep' })
 vim.keymap.set('n', '<leader>pb', function()
-  require('telescope.builtin').buffers { cwd = require('project_nvim').get_project_root() }
+  require('telescope.builtin').buffers { cwd = project_root() }
 end, { desc = '[P]roject [B]uffers' })
 
 vim.keymap.set('n', '<leader>w/', ':vsplit<CR>', { desc = 'Vertical Split' })
