@@ -346,6 +346,7 @@ require('lazy').setup({
       spec = {
         { '<leader>s', group = '[S]earch' },
         { '<leader>t', group = '[T]oggle' },
+        { '<leader>p', group = '[P]roject' },
         { '<leader>h', group = 'Git [H]unk', mode = { 'n', 'v' } },
       },
     },
@@ -406,7 +407,7 @@ require('lazy').setup({
       require('telescope').setup {
         -- You can put your default mappings / updates / etc. in here
         --  All the info you're looking for is in `:help telescope.setup()`
-        --
+        defaults = {},
         -- defaults = {
         --   mappings = {
         --     i = { ['<c-enter>'] = 'to_fuzzy_refine' },
@@ -423,6 +424,8 @@ require('lazy').setup({
       -- Enable Telescope extensions if they are installed
       pcall(require('telescope').load_extension, 'fzf')
       pcall(require('telescope').load_extension, 'ui-select')
+      pcall(require('telescope').load_extension, 'file_browser')
+      pcall(require('telescope').load_extension, 'projects')
 
       -- See `:help telescope.builtin`
       local builtin = require 'telescope.builtin'
@@ -460,6 +463,61 @@ require('lazy').setup({
         builtin.find_files { cwd = vim.fn.stdpath 'config' }
       end, { desc = '[S]earch [N]eovim files' })
     end,
+  },
+
+  {
+    'nvim-telescope/telescope-file-browser.nvim',
+    dependencies = { 'nvim-telescope/telescope.nvim', 'nvim-lua/plenary.nvim' },
+  },
+
+  {
+    'ahmedkhalf/project.nvim',
+    name = 'project_nvim',
+    config = function()
+      require('project_nvim').setup {
+        -- Manual mode disables automatic root change behavior
+        manual_mode = false,
+
+        -- Detection methods to find project root
+        detection_methods = { 'lsp', 'pattern' },
+
+        -- All patterns used to detect project root
+        patterns = { '.git', '_darcs', '.hg', '.bzr', '.svn', 'Makefile', 'package.json', 'Cargo.toml', 'pyproject.toml', 'pom.xml' },
+
+        -- Don't calculate root dir on specific LSP servers (for example, use lua_ls for Lua)
+        ignore_lsp = {},
+
+        -- Exclude directories from project root search
+        exclude_dirs = {},
+
+        -- Show hidden files in telescope
+        show_hidden = false,
+
+        -- When set to false, you will get a message when project.nvim changes your directory
+        silent_chdir = true,
+
+        -- What scope to change the directory, valid options are
+        -- * global (default)
+        -- * tab
+        -- * win
+        scope_chdir = 'global',
+
+        -- Path where project.nvim will store the project history for use in telescope
+        datapath = vim.fn.stdpath 'data',
+      }
+    end,
+  },
+  {
+    'rmagatti/auto-session',
+    lazy = false,
+
+    ---enables autocomplete for opts
+    ---@module "auto-session"
+    ---@type AutoSession.Config
+    opts = {
+      suppressed_dirs = { '~/', '~/Projects', '~/Downloads', '/' },
+      -- log_level = 'debug',
+    },
   },
 
   -- LSP Plugins
@@ -1011,6 +1069,32 @@ require('lazy').setup({
     },
   },
 })
+
+vim.keymap.set('n', '<leader>bb', require('telescope.builtin').buffers, { desc = 'List buffers' })
+
+-- Project management keybindings (Projectile-like)
+vim.keymap.set('n', '<leader>pp', '<cmd>Telescope projects<cr>', { desc = '[P]roject switch' })
+vim.keymap.set('n', '<leader>pf', function()
+  require('telescope.builtin').find_files { cwd = require('project_nvim').get_project_root() }
+end, { desc = '[P]roject [F]iles' })
+vim.keymap.set('n', '<leader>pg', function()
+  require('telescope.builtin').live_grep { cwd = require('project_nvim').get_project_root() }
+end, { desc = '[P]roject [G]rep' })
+vim.keymap.set('n', '<leader>pb', function()
+  require('telescope.builtin').buffers { cwd = require('project_nvim').get_project_root() }
+end, { desc = '[P]roject [B]uffers' })
+
+vim.keymap.set('n', '<leader>w/', ':vsplit<CR>', { desc = 'Vertical Split' })
+vim.keymap.set('n', '<leader>wmm', '<C-w>_ <C-w>|', { desc = 'Maximize current window' })
+
+vim.keymap.set('n', '<leader>ff', function()
+  require('telescope').extensions.file_browser.file_browser {
+    path = '%:p:h',
+    select_buffer = true,
+    hidden = true,
+    grouped = true,
+  }
+end, { desc = 'File browser at current dir' })
 
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
