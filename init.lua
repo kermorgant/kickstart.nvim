@@ -198,6 +198,7 @@ vim.keymap.set('n', '<C-h>', '<C-w><C-h>', { desc = 'Move focus to the left wind
 vim.keymap.set('n', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right window' })
 vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
 vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
+vim.keymap.set('n', '<A-p>', '<C-w>w', { desc = 'Cycle window focus' })
 
 -- NOTE: Some terminals have colliding keymaps or are not able to send distinct keycodes
 -- vim.keymap.set("n", "<C-S-h>", "<C-w>H", { desc = "Move window to the left" })
@@ -442,12 +443,11 @@ require('lazy').setup({
 
       -- Slightly advanced example of overriding default behavior and theme
       vim.keymap.set('n', '<leader>/', function()
-        -- You can pass additional configuration to Telescope to change the theme, layout, etc.
-        builtin.current_buffer_fuzzy_find(require('telescope.themes').get_dropdown {
+        -- Project-wide fuzzy search
+        builtin.live_grep(require('telescope.themes').get_dropdown {
           winblend = 10,
-          previewer = false,
         })
-      end, { desc = '[/] Fuzzily search in current buffer' })
+      end, { desc = '[/] Fuzzily search in project' })
 
       -- It's also possible to pass additional configuration options.
       --  See `:help telescope.builtin.live_grep()` for information about particular keys
@@ -1147,6 +1147,15 @@ vim.keymap.set('n', '<leader>ff', function()
     grouped = true,
   }
 end, { desc = 'File browser at current dir' })
+
+vim.keymap.set('n', '<leader>fj', function()
+  require('telescope').extensions.file_browser.file_browser {
+    path = vim.fn.expand '%:p:h',
+    select_buffer = true,
+    hidden = true,
+    grouped = true,
+  }
+end, { desc = 'File browser (dired-like) at current file dir' })
 
 vim.keymap.set('n', 'C', function()
   require('custom.delete_pair').change_to_closing_pair()
