@@ -471,6 +471,25 @@ require('lazy').setup({
   },
 
   {
+    'stevearc/oil.nvim',
+    dependencies = { 'nvim-tree/nvim-web-devicons' },
+    opts = {
+      view_options = {
+        show_hidden = true,
+      },
+    },
+    keys = {
+      {
+        '<leader>fj',
+        function()
+          require('oil').open(vim.fn.expand '%:p:h')
+        end,
+        desc = 'Oil file explorer at current file dir',
+      },
+    },
+  },
+
+  {
     'ahmedkhalf/project.nvim',
     name = 'project_nvim',
     config = function()
@@ -792,6 +811,22 @@ require('lazy').setup({
         },
       }
 
+      -- PHP LSP: phpactor configuration
+      -- Documentation: https://phpactor.readthedocs.io/en/master/lsp/vim.html
+      servers.phpactor = {
+        cmd = { 'phpactor', 'language-server' },
+        filetypes = { 'php' },
+        root_dir = function(fname)
+          local util = require 'lspconfig.util'
+          return util.root_pattern('.git', 'composer.json', '.phpactor.json', '.phpactor.yml')(fname)
+        end,
+        init_options = {
+          -- Disable built-in static analysis tools if you prefer to use them separately
+          ['language_server_phpstan.enabled'] = false,
+          -- ['language_server_psalm.enabled'] = false,
+        },
+      }
+
       -- Ensure the servers and tools above are installed
       --
       -- To check the current status of installed tools and/or manually install
@@ -860,6 +895,7 @@ require('lazy').setup({
       end,
       formatters_by_ft = {
         lua = { 'stylua' },
+        php = { 'pint', 'php_cs_fixer', 'phpcbf', stop_after_first = true },
         -- Conform can also run multiple formatters sequentially
         -- python = { "isort", "black" },
         --
@@ -948,9 +984,15 @@ require('lazy').setup({
       sources = {
         default = { 'lsp', 'path', 'snippets', 'lazydev' },
         providers = {
+          lsp = { module = 'blink.cmp.sources.lsp', fallbacks = {} },
+          path = { module = 'blink.cmp.sources.path' },
+          snippets = { module = 'blink.cmp.sources.snippets' },
           lazydev = { module = 'lazydev.integrations.blink', score_offset = 100 },
         },
       },
+
+      -- Command-line completion: avoid missing buffer source by only enabling the cmdline provider
+      cmdline = { enabled = true, sources = { 'cmdline' } },
 
       snippets = { preset = 'luasnip' },
 
@@ -1147,15 +1189,6 @@ vim.keymap.set('n', '<leader>ff', function()
     grouped = true,
   }
 end, { desc = 'File browser at current dir' })
-
-vim.keymap.set('n', '<leader>fj', function()
-  require('telescope').extensions.file_browser.file_browser {
-    path = vim.fn.expand '%:p:h',
-    select_buffer = true,
-    hidden = true,
-    grouped = true,
-  }
-end, { desc = 'File browser (dired-like) at current file dir' })
 
 vim.keymap.set('n', 'C', function()
   require('custom.delete_pair').change_to_closing_pair()
