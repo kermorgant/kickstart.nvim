@@ -4,3 +4,8 @@ test.sh
 nvim
 
 spell/
+
+# Screenshots and temporary files
+*.png
+*.backup
+kickstart.md
