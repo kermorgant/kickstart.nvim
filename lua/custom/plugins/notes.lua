@@ -89,6 +89,41 @@ local function open_file(filepath)
   insert_entry_header()
 end
 
+-- Ensure .gitignore exists and includes scratch/
+local function ensure_gitignore()
+  local notes_repo = get_notes_repo()
+  if not notes_repo then
+    return
+  end
+
+  local gitignore_path = notes_repo .. '/.gitignore'
+  local gitignore_content = 'scratch/\n'
+
+  -- Check if .gitignore exists
+  local file = io.open(gitignore_path, 'r')
+  if file then
+    local content = file:read '*a'
+    file:close()
+    -- Check if scratch/ is already in gitignore
+    if content:match 'scratch/' then
+      return
+    end
+    -- Append to existing gitignore
+    file = io.open(gitignore_path, 'a')
+    if file then
+      file:write('\n' .. gitignore_content)
+      file:close()
+    end
+  else
+    -- Create new gitignore
+    file = io.open(gitignore_path, 'w')
+    if file then
+      file:write(gitignore_content)
+      file:close()
+    end
+  end
+end
+
 -- Git auto-sync function
 local function git_sync(filepath)
   local notes_repo = get_notes_repo()
@@ -101,25 +136,49 @@ local function git_sync(filepath)
     return
   end
 
-  -- Run git commands in background
+  -- Skip if it's a scratch file
+  if filepath:match '/scratch/' then
+    return
+  end
+
+  -- Run git commands in background with better error handling
   vim.fn.jobstart({
     'bash',
     '-c',
     string.format(
       [[
-      cd '%s' && \
-      git pull --rebase --autostash 2>/dev/null && \
-      git add . && \
-      git commit -m "Auto-sync: $(date '+%%Y-%%m-%%d %%H:%%M:%%S')" 2>/dev/null && \
-      git push 2>/dev/null &
+      cd '%s' || exit 1
+      git pull --rebase --autostash || exit 1
+      git add . || exit 1
+      git diff --staged --quiet && exit 0
+      git commit -m "Auto-sync: $(date '+%%Y-%%m-%%d %%H:%%M:%%S')" || exit 1
+      git push || exit 1
       ]],
       notes_repo
     ),
   }, {
+    on_stdout = function(_, data)
+      if data then
+        vim.schedule(function()
+          vim.notify(table.concat(data, '\n'), vim.log.levels.DEBUG)
+        end)
+      end
+    end,
+    on_stderr = function(_, data)
+      if data and #data > 0 and data[1] ~= '' then
+        vim.schedule(function()
+          vim.notify('Notes sync error: ' .. table.concat(data, '\n'), vim.log.levels.WARN)
+        end)
+      end
+    end,
     on_exit = function(_, exit_code)
       if exit_code == 0 then
         vim.schedule(function()
-          vim.notify('Notes synced', vim.log.levels.INFO)
+          vim.notify('Notes synced ✓', vim.log.levels.INFO)
+        end)
+      elseif exit_code ~= 0 then
+        vim.schedule(function()
+          vim.notify('Notes sync failed (check git config and remote)', vim.log.levels.ERROR)
         end)
       end
     end,
@@ -133,6 +192,9 @@ function M.setup()
     vim.notify('Skipping notes setup: NOTES_REPO not configured', vim.log.levels.WARN)
     return
   end
+
+  -- Ensure .gitignore exists with scratch/ entry
+  ensure_gitignore()
 
   -- Keybindings
   vim.keymap.set('n', '<leader>nd', function()
