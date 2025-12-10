@@ -34,4 +34,17 @@ return {
       },
     },
   },
+
+  { -- Git timemachine and utilities
+    'emmanueltouzery/agitator.nvim',
+    keys = {
+      {
+        '<leader>gt',
+        function()
+          require('agitator').git_time_machine {}
+        end,
+        desc = 'Git timemachine',
+      },
+    },
+  },
 }

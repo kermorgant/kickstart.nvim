@@ -10,21 +10,34 @@ vim.o.mouse = 'a'
 -- Don't show mode in command line (it's in status line)
 vim.o.showmode = false
 
--- Sync clipboard between OS and Neovim using OSC-52
--- This works through SSH and containers by sending escape sequences to the terminal
--- Requires tmux config: set -g set-clipboard on
--- Requires Neovim 0.10+ and OSC-52 compatible terminal (Alacritty, WezTerm, Ghostty, etc.)
-vim.g.clipboard = {
-  name = 'OSC 52',
-  copy = {
-    ['+'] = require('vim.ui.clipboard.osc52').copy('+'),
-    ['*'] = require('vim.ui.clipboard.osc52').copy('*'),
-  },
-  paste = {
-    ['+'] = require('vim.ui.clipboard.osc52').paste('+'),
-    ['*'] = require('vim.ui.clipboard.osc52').paste('*'),
-  },
-}
+-- Hybrid clipboard setup (Neovim built without clipboard support):
+-- - If wl-clipboard available: use it for reliable copy/paste (local Wayland)
+-- - Otherwise: use OSC-52 for copy (containers/SSH), paste via terminal Ctrl+Shift+V
+
+if vim.fn.executable('wl-copy') == 1 then
+  -- Local Wayland: use wl-clipboard for both copy and paste
+  vim.g.clipboard = {
+    name = 'wl-clipboard',
+    copy = {
+      ['+'] = 'wl-copy',
+      ['*'] = 'wl-copy --primary',
+    },
+    paste = {
+      ['+'] = 'wl-paste --no-newline',
+      ['*'] = 'wl-paste --no-newline --primary',
+    },
+    cache_enabled = 0,
+  }
+else
+  -- Container/SSH: use OSC-52 for copy, rely on terminal paste
+  vim.g.clipboard = {
+    name = 'OSC 52',
+    copy = {
+      ['+'] = require('vim.ui.clipboard.osc52').copy('+'),
+      ['*'] = require('vim.ui.clipboard.osc52').copy('*'),
+    },
+  }
+end
 vim.o.clipboard = 'unnamedplus'
 
 -- Enable break indent
