@@ -14,14 +14,24 @@ return {
     },
   },
 
-  {
-    'tpope/vim-fugitive',
-    cmd = { 'Git', 'Gedit', 'Gdiffsplit', 'Gvdiffsplit' },
-  },
-
-  {
-    'rbong/vim-flog',
-    dependencies = { 'tpope/vim-fugitive' },
-    cmd = { 'Flog', 'Flogsplit' },
+  { -- Magit-inspired git interface
+    'NeogitOrg/neogit',
+    dependencies = {
+      'nvim-lua/plenary.nvim', -- required
+      'sindrets/diffview.nvim', -- optional - enhanced diff view
+      'nvim-telescope/telescope.nvim', -- optional
+    },
+    cmd = 'Neogit',
+    keys = {
+      { '<leader>gg', '<cmd>Neogit<cr>', desc = 'Neogit status' },
+    },
+    opts = {
+      -- Magit-style single character command bindings
+      kind = 'tab', -- open in new tab (or 'split', 'vsplit', 'floating')
+      integrations = {
+        diffview = true, -- enable diffview integration
+        telescope = true,
+      },
+    },
   },
 }
