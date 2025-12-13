@@ -14,6 +14,19 @@ return {
   { -- Main LSP Configuration
     'neovim/nvim-lspconfig',
     dependencies = {
+      {
+        -- `lazydev` configures Lua LSP for your Neovim config, runtime and plugins
+        -- used for completion, annotations and signatures of Neovim apis
+        'folke/lazydev.nvim',
+        ft = 'lua',
+        opts = {
+          library = {
+            -- Load luvit types when the `vim.uv` word is found
+            { path = 'luvit-meta/library', words = { 'vim%.uv' } },
+            { path = '/usr/share/awesome/lib/', words = { 'awesome' } },
+          },
+        },
+      },
       { 'mason-org/mason.nvim', opts = {} },
       'mason-org/mason-lspconfig.nvim',
       'WhoIsSethDaniel/mason-tool-installer.nvim',
