@@ -137,6 +137,16 @@ return {
             ['language_server_phpstan.enabled'] = false,
           },
         },
+        yamlls = {
+          settings = {
+            yaml = {
+              format = {
+                enable = true,
+              },
+              validate = true,
+            },
+          },
+        },
       }
 
       local ensure_installed = vim.tbl_keys(servers or {})
