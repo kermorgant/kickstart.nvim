@@ -78,3 +78,9 @@ vim.o.scrolloff = 10
 
 -- Raise dialog asking to save instead of failing due to unsaved changes
 vim.o.confirm = true
+
+-- Folding configuration using TreeSitter (built-in Neovim 0.9+)
+vim.opt.foldmethod = 'expr'
+vim.opt.foldexpr = 'v:lua.vim.treesitter.foldexpr()'
+vim.opt.foldlevel = 99 -- Start with all folds open
+vim.opt.foldenable = true
