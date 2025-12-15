@@ -4,6 +4,12 @@ return {
   -- Detect tabstop and shiftwidth automatically
   'NMAC427/guess-indent.nvim',
 
+  -- Multiple cursors plugin
+  {
+    'mg979/vim-visual-multi',
+    branch = 'master',
+  },
+
   { -- Useful plugin to show you pending keybinds.
     'folke/which-key.nvim',
     event = 'VimEnter',
