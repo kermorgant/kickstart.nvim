@@ -94,4 +94,23 @@ return {
     'nvim-treesitter/nvim-treesitter-textobjects',
     dependencies = { 'nvim-treesitter/nvim-treesitter' },
   },
+
+  { -- Smart window/pane resizing and navigation
+    'mrjones2014/smart-splits.nvim',
+    opts = {
+      -- Integrate with wezterm
+      multiplexer_integration = 'wezterm',
+      -- Don't override existing CTRL+hjkl navigation
+      default_amount = 5,
+    },
+    config = function(_, opts)
+      require('smart-splits').setup(opts)
+
+      -- Resize splits with Alt+hjkl
+      vim.keymap.set('n', '<A-h>', require('smart-splits').resize_left, { desc = 'Resize split left' })
+      vim.keymap.set('n', '<A-j>', require('smart-splits').resize_down, { desc = 'Resize split down' })
+      vim.keymap.set('n', '<A-k>', require('smart-splits').resize_up, { desc = 'Resize split up' })
+      vim.keymap.set('n', '<A-l>', require('smart-splits').resize_right, { desc = 'Resize split right' })
+    end,
+  },
 }
