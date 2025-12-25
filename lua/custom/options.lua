@@ -14,7 +14,7 @@ vim.o.showmode = false
 -- - If wl-clipboard available: use it for reliable copy/paste (local Wayland)
 -- - Otherwise: use OSC-52 for copy (containers/SSH), paste via terminal Ctrl+Shift+V
 
-if vim.fn.executable('wl-copy') == 1 then
+if vim.fn.executable 'wl-copy' == 1 then
   -- Local Wayland: use wl-clipboard for both copy and paste
   vim.g.clipboard = {
     name = 'wl-clipboard',
@@ -33,8 +33,8 @@ else
   vim.g.clipboard = {
     name = 'OSC 52',
     copy = {
-      ['+'] = require('vim.ui.clipboard.osc52').copy('+'),
-      ['*'] = require('vim.ui.clipboard.osc52').copy('*'),
+      ['+'] = require('vim.ui.clipboard.osc52').copy '+',
+      ['*'] = require('vim.ui.clipboard.osc52').copy '*',
     },
   }
 end
@@ -84,3 +84,31 @@ vim.opt.foldmethod = 'expr'
 vim.opt.foldexpr = 'v:lua.vim.treesitter.foldexpr()'
 vim.opt.foldlevel = 99 -- Start with all folds open
 vim.opt.foldenable = true
+
+-- EditorConfig support
+if vim.fn.has('nvim-0.9') == 1 then
+  -- Enable built-in EditorConfig support (Neovim 0.9+)
+  vim.g.editorconfig = true
+else
+  -- Will rely on gpanders/editorconfig.nvim plugin for older versions
+end
+
+-- Ensure EditorConfig settings take precedence over guess-indent and other conflicting plugins
+vim.api.nvim_create_autocmd('FileType', {
+  pattern = '*',
+  callback = function()
+    -- Give EditorConfig a moment to apply settings, then ensure they're not overridden
+    vim.defer_fn(function()
+      -- Force re-detection of EditorConfig for the current buffer
+      if vim.fn.has('nvim-0.9') == 1 and vim.g.editorconfig then
+        -- Built-in support: ensure it's applied
+        local ok, _ = pcall(vim.api.nvim_exec2, 'silent! EditorConfigReload', {})
+        if not ok then
+          -- Fallback: manually apply common EditorConfig-like settings
+          local bufnr = vim.api.nvim_get_current_buf()
+          vim.api.nvim_set_option_value('expandtab', not (vim.bo[bufnr].shiftwidth == 0), { buf = bufnr })
+        end
+      end
+    end, 50)
+  end,
+})

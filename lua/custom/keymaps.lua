@@ -21,14 +21,16 @@ vim.keymap.set('n', '<A-p>', '<C-w>w', { desc = 'Cycle window focus' })
 
 -- [[ Custom Keymaps ]]
 
--- Helper function to get project root
+-- Helper function to get project root using native vim.fs
 local function project_root()
-  local ok, project = pcall(require, 'project_nvim.project')
-  if ok and project.get_project_root then
-    local root = project.get_project_root()
-    if root and #root > 0 then
-      return root
-    end
+  -- Find .git directory walking up from current buffer
+  local git_root = vim.fs.find('.git', {
+    upward = true,
+    path = vim.fn.expand('%:p:h'),
+  })[1]
+
+  if git_root then
+    return vim.fn.fnamemodify(git_root, ':h')
   end
   return vim.loop.cwd()
 end
@@ -37,7 +39,6 @@ end
 vim.keymap.set('n', '<leader>bb', require('telescope.builtin').buffers, { desc = 'List buffers' })
 
 -- Project management (Projectile-like)
-vim.keymap.set('n', '<leader>pp', '<cmd>Telescope projects<cr>', { desc = '[P]roject switch' })
 vim.keymap.set('n', '<leader>pf', function()
   require('telescope.builtin').find_files { cwd = project_root() }
 end, { desc = '[P]roject [F]iles' })
@@ -70,3 +71,15 @@ end, { desc = 'Change to closing pair' })
 vim.keymap.set('n', 'D', function()
   require('custom.delete_pair').delete_to_closing_pair()
 end, { desc = 'Delete to closing pair using Treesitter' })
+
+-- Git diff keymaps
+vim.keymap.set('n', '<leader>gd', '<cmd>DiffviewOpen<cr>', { desc = '[G]it [D]iff current changes' })
+vim.keymap.set('n', '<leader>gh', '<cmd>DiffviewFileHistory<cr>', { desc = '[G]it [H]istory current file' })
+vim.keymap.set('n', '<leader>gH', '<cmd>DiffviewFileHistory %<cr>', { desc = '[G]it [H]istory current file' })
+vim.keymap.set('n', '<leader>gc', function()
+  local commit = vim.fn.input('Commit hash: ')
+  if commit ~= '' then
+    vim.cmd('DiffviewOpen ' .. commit .. '^..' .. commit)
+  end
+end, { desc = '[G]it [C]ommit diff' })
+vim.keymap.set('n', '<leader>gq', '<cmd>DiffviewClose<cr>', { desc = '[G]it diff [Q]uit' })

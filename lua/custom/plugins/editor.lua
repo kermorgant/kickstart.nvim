@@ -1,13 +1,24 @@
 -- Core editor enhancement plugins
 
 return {
-  -- Detect tabstop and shiftwidth automatically
-  'NMAC427/guess-indent.nvim',
+  -- EditorConfig support (respects project .editorconfig files)
+  {
+    'gpanders/editorconfig.nvim',
+    enabled = vim.fn.has('nvim-0.9') == 0, -- Only use plugin if built-in support unavailable
+    event = 'VeryLazy',
+  },
 
   -- Multiple cursors plugin
   {
     'mg979/vim-visual-multi',
     branch = 'master',
+    init = function()
+      -- Remap default C-n to ALT+d for adding cursor
+      vim.g.VM_maps = {
+        ['Find Under'] = '<M-d>',
+        ['Find Subword Under'] = '<M-d>',
+      }
+    end,
   },
 
   { -- Useful plugin to show you pending keybinds.

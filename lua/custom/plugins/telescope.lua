@@ -30,7 +30,6 @@ return {
       pcall(require('telescope').load_extension, 'fzf')
       pcall(require('telescope').load_extension, 'ui-select')
       pcall(require('telescope').load_extension, 'file_browser')
-      pcall(require('telescope').load_extension, 'projects')
 
       -- Keymaps
       local builtin = require 'telescope.builtin'
@@ -85,34 +84,6 @@ return {
         end,
         desc = 'Oil file explorer at current file dir',
       },
-    },
-  },
-
-  {
-    'ahmedkhalf/project.nvim',
-    name = 'project_nvim',
-    config = function()
-      require('project_nvim').setup {
-        manual_mode = false,
-        detection_methods = { 'lsp', 'pattern' },
-        patterns = { '.git', '_darcs', '.hg', '.bzr', '.svn', 'Makefile', 'package.json', 'Cargo.toml', 'pyproject.toml', 'pom.xml' },
-        ignore_lsp = {},
-        exclude_dirs = {},
-        show_hidden = false,
-        silent_chdir = true,
-        scope_chdir = 'global',
-        datapath = vim.fn.stdpath 'data',
-      }
-    end,
-  },
-
-  {
-    'rmagatti/auto-session',
-    lazy = false,
-    ---@module "auto-session"
-    ---@type AutoSession.Config
-    opts = {
-      suppressed_dirs = { '~/', '~/Projects', '~/Downloads', '/' },
     },
   },
 }

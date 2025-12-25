@@ -196,7 +196,71 @@ return {
       end,
       formatters_by_ft = {
         lua = { 'stylua' },
-        php = { 'pint', 'php_cs_fixer', 'phpcbf', stop_after_first = true },
+        php = function(bufnr)
+          local cwd = vim.fn.getcwd()
+
+          -- Check for PHP CS Fixer config (highest priority)
+          if vim.fn.filereadable(cwd .. '/.php-cs-fixer.php') == 1 or
+             vim.fn.filereadable(cwd .. '/.php-cs-fixer.dist.php') == 1 then
+            return { 'php_cs_fixer' }
+          end
+
+          -- Check for Laravel Pint
+          if vim.fn.filereadable(cwd .. '/pint.json') == 1 or
+             vim.fn.isdirectory(cwd .. '/vendor/laravel/pint') == 1 then
+            return { 'pint' }
+          end
+
+          -- Check for PHPCS
+          if vim.fn.filereadable(cwd .. '/phpcs.xml') == 1 or
+             vim.fn.filereadable(cwd .. '/phpcs.xml.dist') == 1 then
+            return { 'phpcbf' }
+          end
+
+          -- Fallback: Use LSP formatting only (return empty to let lsp_format handle it)
+          return {}
+        end,
+      },
+      -- Configure formatters to use project-specific config files
+      formatters = {
+        php_cs_fixer = {
+          args = function(self, ctx)
+            local cwd = vim.fn.getcwd()
+            local config_file = nil
+
+            if vim.fn.filereadable(cwd .. '/.php-cs-fixer.php') == 1 then
+              config_file = '.php-cs-fixer.php'
+            elseif vim.fn.filereadable(cwd .. '/.php-cs-fixer.dist.php') == 1 then
+              config_file = '.php-cs-fixer.dist.php'
+            end
+
+            local args = { 'fix', '--no-interaction', '--quiet' }
+            if config_file then
+              vim.list_extend(args, { '--config=' .. config_file })
+            end
+            vim.list_extend(args, { '$FILENAME' })
+            return args
+          end,
+        },
+        phpcbf = {
+          args = function(self, ctx)
+            local cwd = vim.fn.getcwd()
+            local standard_file = nil
+
+            if vim.fn.filereadable(cwd .. '/phpcs.xml') == 1 then
+              standard_file = 'phpcs.xml'
+            elseif vim.fn.filereadable(cwd .. '/phpcs.xml.dist') == 1 then
+              standard_file = 'phpcs.xml.dist'
+            end
+
+            local args = { '--no-patch', '--quiet' }
+            if standard_file then
+              vim.list_extend(args, { '--standard=' .. standard_file })
+            end
+            vim.list_extend(args, { '$FILENAME' })
+            return args
+          end,
+        },
       },
     },
   },
